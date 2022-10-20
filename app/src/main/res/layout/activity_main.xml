@@ -11,12 +11,12 @@
         android:layout_height="50dp"
         android:orientation="horizontal">
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/test_evaluateJavascript"
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_weight="1.0"
-            android:text="testEvaluateJavascript" />
+            android:text="run Javascript" />
     </LinearLayout>
 
     <org.mozilla.geckoview.GeckoView
