@@ -2,6 +2,7 @@ package com.example.app;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
     private static GeckoRuntime runtime;
     private GeckoSession geckoSession;
     private static WebExtension.Port mPort;
+    int count = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,12 +28,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         geckoView = findViewById(R.id.gecko_v);
         findViewById(R.id.test_evaluateJavascript).setOnClickListener(v -> {
-
-            //test evaluateJavascript
-            evaluateJavascript("document.body.style.width = '100px'");
-            //            evaluateJavascript("document.cookie");
-            // test js call native
-//            evaluateJavascript("window.JSBridge.postMessage('from web html')");
+            count++;
+            evaluateJavascript("window.appMessage('app button click" + count + "')");
         });
         if (runtime == null) {
             runtime = GeckoRuntime.create(this);
@@ -42,7 +40,9 @@ public class MainActivity extends AppCompatActivity {
         geckoSession.open(runtime);
         geckoView.setSession(geckoSession);
 
-        geckoSession.loadUri("https://mobile.vipkid.com.cn/");
+        //http://192.168.11.148:8001/
+        geckoSession.loadUri("http://192.168.11.148:8001/");
+//        geckoSession.loadUri("https://mobile.vipkid.com.cn/");
 
     }
 
@@ -52,11 +52,12 @@ public class MainActivity extends AppCompatActivity {
                 .accept(
                         extension -> {
                             Log.i("MessageDelegate", "Extension installed: " + extension);
-                            extension.setMessageDelegate(mMessagingDelegate, "browser");
+                            runOnUiThread(() -> extension.setMessageDelegate(mMessagingDelegate, "browser"));
                         },
                         e -> Log.e("MessageDelegate", "Error registering WebExtension", e)
                 );
     }
+
 
     private final WebExtension.MessageDelegate mMessagingDelegate = new WebExtension.MessageDelegate() {
 
@@ -78,6 +79,11 @@ public class MainActivity extends AppCompatActivity {
                 if (message instanceof JSONObject) {
                     Log.e("MessageDelegate", "Received JSONObject");
                     JSONObject jsonObject = (JSONObject) message;
+                    String action = jsonObject.getString("action");
+                    if ("JSBridge".equals(action)) {
+                        String data = jsonObject.getString("data");
+                        Toast.makeText(MainActivity.this, data, Toast.LENGTH_LONG).show();
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
